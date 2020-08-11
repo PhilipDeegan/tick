@@ -900,8 +900,8 @@ class CleanTick(clean):
                     path.unlink()
 
 
-setup(name="tick",
-      version='0.7.0.1',
+setup(name="tick-dev",
+      version='0.6.9.9',
       author="Emmanuel Bacry, "
              "Stephane Gaiffas, "
              "Martin Bompaire, "
