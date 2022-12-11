@@ -20,8 +20,7 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        python-version: ['3.7', '3.8', '3.9']
-
+        python-version: ['3.10']
     steps:
     - uses: actions/checkout@v2
       with:
@@ -32,8 +31,14 @@ jobs:
         brew update
         brew install automake m4
         git clone https://github.com/swig/swig -b rel-4.0.2 swig
-        cd swig && ./autogen.sh && ./configure --without-pcre
-        make && make install && cd .. && rm -rf swigkey
+        (cd swig && ./autogen.sh && ./configure --without-pcre && make && make install)
+        rm -rf swig
+
+    # - name: install gtest
+    #   run: |
+    #     git clone https://github.com/google/googletest --depth 1 gtest
+    #     (cd gtest && mkdir -p build && cd build && cmake .. && make && make install)
+    #     rm -rf gtest
 
     - uses: actions/setup-python@v1
       with:
@@ -44,6 +49,11 @@ jobs:
         pip install pip --upgrade
         pip install wheel
         pip install -r requirements.txt
-        python setup.py build_ext --inplace cpptest
-        python -m unittest discover -v . "*_test.py"
 
+    - run: |
+        curl -Lo mkn https://github.com/mkn/mkn/releases/download/latest/mkn_osx
+        chmod +x mkn
+        export PATH="$PWD:$PATH"
+        ./sh/mkn.sh
+        ./sh/gtest.sh
+        python -m unittest discover -v . "*_test.py"
