@@ -8,6 +8,7 @@ on:
     branches: [ master ]
 
 env:
+  KLOG: 3
   TICK_DEBUG: 0
   TICK_WERROR: 0
 
@@ -26,21 +27,10 @@ jobs:
       with:
         submodules: true
 
-    - name: install swig
-      run: |
-        brew update
-        brew install automake m4
-        git clone https://github.com/swig/swig -b rel-4.0.2 swig
-        (cd swig && ./autogen.sh && ./configure --without-pcre && make && make install)
-        rm -rf swig
+    - run: |
+        swig -version
 
-    # - name: install gtest
-    #   run: |
-    #     git clone https://github.com/google/googletest --depth 1 gtest
-    #     (cd gtest && mkdir -p build && cd build && cmake .. && make && make install)
-    #     rm -rf gtest
-
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
         architecture: x64
