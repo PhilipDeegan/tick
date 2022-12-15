@@ -8,7 +8,7 @@
 #
 # Requires the mkn build tool
 #
-# Input arguments are optional but if used are to be the 
+# Input arguments are optional but if used are to be the
 #  test files to be compiled and run, otherwise all files
 #  with the syntax "*gtest.cpp" are used
 #
@@ -26,50 +26,33 @@
 # 
 ######################################################################
 
+set -ex
+
 CWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-FILES=()
-array=( "$@" )
-arraylength=${#array[@]}
-for (( i=1; i<${arraylength}+1; i++ ));
-do
-   FILES+=("${array[$i-1]}")
-done
-
 pushd $CWD/.. 2>&1 > /dev/null
 ROOT=$PWD
 popd 2>&1 > /dev/null
 
 source $ROOT/sh/configure_env.sh
+cd $ROOT/lib
 
-pushd $ROOT/lib 2>&1 > /dev/null
-  [ "$arraylength" == "0" ] && FILES=($(find cpp-test -name "*gtest.cpp"))
+FILES=()
+array=( "$@" )
+arraylength=${#array[@]}
+for (( i=1; i<${arraylength}+1; i++ )); do
+   FILES+=("${array[$i-1]}")
+done
 
-  [ ! -z "$CXXFLAGS" ] && CARGS="$CXXFLAGS $CARGS"
-  [ ! -z "$LDFLAGS" ] && LDARGS="${LDARGS} ${LDFLAGS}"
+pushd $CWD/../lib 2>&1 > /dev/null
 
-  mkn build -p gtest -tSa "$CARGS -DGTEST_CREATE_SHARED_LIBRARY" \
-      -d google.test,+ ${MKN_X_FILE[@]} "${MKN_WITH[@]}"
+[ "$arraylength" == "0" ] && FILES=($(find cpp-test -name "*gtest.cpp"))
 
-  LIB=""
-  if [[ "$unameOut" == "Darwin"* ]]; then
-    for P in "${PROFILES[@]}"; do
-      LIB="${LIB} -Wl,-rpath,@loader_path/../../$(dirname ${LIBRARIES[$(hash_index $P)]})"
-    done
-  fi
+mkn clean build -p gtest -tSa "$CXXFLAGS -DGTEST_CREATE_SHARED_LIBRARY" -d google.test,+ ${MKN_X_FILE}
 
-  RUN="run"
-  [[ $DEBUG == 1 ]] && RUN="dbg"
-  set -x
-  for FILE in "${FILES[@]}"; do
-
-      echo FILE $FILE
-
-      mkn clean build -p gtest -a "${CARGS} -DGTEST_LINKED_AS_SHARED_LIBRARY" \
-          -tl "${LDARGS} ${LIB}" -b "$PY_INCS" \
-          -M "${FILE}" -P "${MKN_P}" "${MKN_WITH[@]}" \
-          -B $B_PATH ${RUN} ${MKN_X_FILE[@]}
-          
-  done
+if (( IS_WINDOWS == 1 )); then export MKN_LIB_EXT=".pyd"; fi
+for FILE in "${FILES[@]}"; do
+    mkn clean build -p gtest -a "${CXXFLAGS} -DGTEST_LINKED_AS_SHARED_LIBRARY" \
+        -tl "${LDFLAGS}" -M "${FILE}" run ${MKN_X_FILE} ${MKN_P}
+done
 
 popd 2>&1 > /dev/null

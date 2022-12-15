@@ -1,23 +1,18 @@
-#! clean build -dtS
+#! clean build -dtSOg 0
 
 name: tick
 
 self:
-  serialization
   preprocessing
   array_test
-  hawkes/simulation
-  hawkes/inference
+  hawkes_simulation
+  hawkes_inference
   solver
   robust
   survival
 
 property:
-    postfix: x86_64-linux-gnu
-    py_maj: 3
-    py_min: 6m
-    py_ver: cpython-
-    lib_name: .${py_ver}${py_maj}${py_min}-${postfix}
+    lib_name: TO_BE_OVERRIDDEN
     lib_path: ./../tick
     cargs: -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
            -D_FILE_OFFSET_BITS=64 -DPYTHON_LINK -DNDEBUG
@@ -46,6 +41,8 @@ property:
 profile:
   - name: arg
     arg: ${cargs}
+    inc: ./include
+         ./third_party/cereal/include
     if_arg:
       win: ${win_cargs}
       nix: ${nix_cargs}
@@ -54,143 +51,206 @@ profile:
       nix_lib: ${nix_largs}
       bsd_lib: ${bsd_largs}
       win: -nodefaultlib:libucrt.lib ucrt.lib -MANIFEST:EMBED,ID=2 -MANIFESTUAC:NO -LTCG
+    mod: |
+      lang.python3{compile{with: numpy}, link{delete: CoreFoundation }}
+
+  - name: array
+    parent: arg
+    src: ./cpp/array ./swig/tick/array
+    install: ${lib_path}/array/build
+    out: _array${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/array/array_module.i
+        outdir: ../tick/array/build
+        objfile: array_module_wrap.cpp
 
   - name: base
     parent: arg
     self: array
-    src:
-      ./cpp/base
-      ./swig/tick/base
+    src: ./cpp/base ./swig/tick/base
     install: ${lib_path}/base/build
     out: _base${lib_name}
-
-  - name: array
-    parent: arg
-    inc:
-      ./include
-      ./third_party/cereal/include
-    src:
-      ./cpp/array
-      ./swig/tick/array
-    install: ${lib_path}/array/build
-    out: _array${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/base/base_module.i
+        outdir: ../tick/base/build
+        objfile: base_module_wrap.cpp
 
   - name: array_test
     parent: arg
     self: base
-    src:
-      ./cpp/array_test
-      ./swig/tick/array_test
+    src: ./cpp/array_test ./swig/tick/array_test
     install: ${lib_path}/array_test/build
-    out: _array_test${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/array_test/array_test_module.i
+        outdir: ../tick/array_test/build
+        objfile: base_module_wrap.cpp
 
   - name: base_model
     parent: arg
     self: base
-    src:
-      ./cpp/base_model
-      ./swig/tick/base_model
+    src: ./cpp/base_model ./swig/tick/base_model
     install: ${lib_path}/base_model/build
     out: _base_model${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/base_model/base_model_module.i
+        outdir: ../tick/base_model/build
+        objfile: base_module_wrap.cpp
 
-  - name: hawkes/model
+  - name: hawkes_model
     parent: arg
     self: base_model
-    src:
-      ./cpp/hawkes/model
-      ./swig/tick/hawkes/model
+    src: ./cpp/hawkes/model ./swig/tick/hawkes/model
     install: ${lib_path}/hawkes/model/build
     out: _hawkes_model${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/hawkes/model/hawkes_model_module.i
+        outdir: ../tick/hawkes/model/build
+        objfile: base_module_wrap.cpp
 
-  - name: hawkes/simulation
+  - name: hawkes_simulation
     parent: arg
     self: random
-    src:
-      ./cpp/hawkes/simulation
-      ./swig/tick/hawkes/simulation
+    src: ./cpp/hawkes/simulation ./swig/tick/hawkes/simulation
     install: ${lib_path}/hawkes/simulation/build
     out: _hawkes_simulation${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/hawkes/simulation/hawkes_simulation_module.i
+        outdir: ../tick/hawkes/simulation/build
+        objfile: base_module_wrap.cpp
 
-  - name: hawkes/inference
+  - name: hawkes_inference
     parent: arg
-    self: hawkes/model
-    src:
-      ./cpp/hawkes/inference
-      ./swig/tick/hawkes/inference
+    self: hawkes_model
+    src: ./cpp/hawkes/inference ./swig/tick/hawkes/inference
     install: ${lib_path}/hawkes/inference/build
     out: _hawkes_inference${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/hawkes/inference/hawkes_inference_module.i
+        outdir: ../tick/hawkes/inference/build
+        objfile: base_module_wrap.cpp
 
   - name: linear_model
     parent: arg
     self: base_model
-    src:
-      ./cpp/linear_model
-      ./swig/tick/linear_model
+    src: ./cpp/linear_model ./swig/tick/linear_model
     install: ${lib_path}/linear_model/build
     out: _linear_model${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/linear_model/linear_model_module.i
+        outdir: ../tick/linear_model/build
+        objfile: linear_model_module_wrap.cpp
 
   - name: prox
     parent: arg
     self: base
-    src:
-      ./cpp/prox
-      ./swig/tick/prox
+    src: ./cpp/prox ./swig/tick/prox
     install: ${lib_path}/prox/build
     out: _prox${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/prox/base_module.i
+        outdir: ../tick/prox/build
+        objfile: prox_module_wrap.cpp
 
   - name: preprocessing
     parent: arg
     self: base
-    src:
-      ./cpp/preprocessing
-      ./swig/tick/preprocessing
+    src: ./cpp/preprocessing ./swig/tick/preprocessing
     install: ${lib_path}/preprocessing/build
     out: _preprocessing${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/preprocessing/preprocessing_module.i
+        outdir: ../tick/preprocessing/build
+        objfile: preprocessing_module_wrap.cpp
 
   - name: random
     parent: arg
     self: base
-    src:
-      ./cpp/random
-      ./swig/tick/random
+    src: ./cpp/random ./swig/tick/random
     install: ${lib_path}/random/build
-    out: _crandom${lib_name}
+    out: _random${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/random/random_module.i
+        outdir: ../tick/random/build
+        objfile: random_module_wrap.cpp
 
   - name: robust
     parent: arg
     self: linear_model
-    src:
-      ./cpp/robust
-      ./swig/tick/robust
+    src: ./cpp/robust ./swig/tick/robust
     install: ${lib_path}/robust/build
     out: _robust${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/robust/robust_module.i
+        outdir: ../tick/robust/build
+        objfile: robust_module_wrap.cpp
 
   - name: solver
     parent: arg
     self: random linear_model prox robust
-    src:
-      ./cpp/solver
-      ./swig/tick/solver
+    src: ./cpp/solver ./swig/tick/solver
     install: ${lib_path}/solver/build
     out: _solver${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/solver/solver_module.i
+        outdir: ../tick/solver/build
+        objfile: solver_module_wrap.cpp
 
   - name: survival
     parent: arg
     self: base_model
-    src:
-      ./cpp/survival
-      ./swig/tick/survival
+    src: ./cpp/survival ./swig/tick/survival
     install: ${lib_path}/survival/build
     out: _survival${lib_name}
-
-  - name: serialization
-    parent: arg
-    self: linear_model solver prox robust survival
-    install: ${lib_path}/serialization/build
-    out: _serialization${lib_name}
+    mod:
+    - name: lang.swig
+      compile:
+        inc: include swig
+        src: swig/tick/survival/survival_module.i
+        outdir: ../tick/survival/build
+        objfile: survival_module_wrap.cpp
 
 ### See file ./sh/gtest/sh
   - name: exe
+    parent: arg
     arg: ${cargs}
     if_arg:
       win: -Ox -GL -MD -EHsc
@@ -216,4 +276,4 @@ profile:
 
   - name: gtest
     parent: gtest_nodep
-    self: solver hawkes/model hawkes/simulation robust survival
+    self: solver hawkes_model hawkes_simulation robust survival
