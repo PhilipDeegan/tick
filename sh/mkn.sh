@@ -9,30 +9,22 @@
 #
 # Requires the mkn build tool
 #
-# Input arguments are optional but if used are to be the
-#  modules to be compile, otherwise all modules are
-#  compiled - use command "mkn profiles" to view available
-#  modules/profiles
-#
 # ccache is recommended
 #
 ######################################################################
 
-set -e
+set -ex
 
 CWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $CWD/../lib 2>&1 > /dev/null
+pushd $CWD/.. 2>&1 > /dev/null
+ROOT=$PWD
+popd 2>&1 > /dev/null
 
+source $ROOT/sh/configure_env.sh
+cd $ROOT/lib
+
+mkn clean build -dtSOg 0 -a "${CXXFLAGS}" -p array
+
+if (( IS_WINDOWS == 1 )); then export MKN_LIB_EXT=".pyd"; fi
 export MKN_LIB_LINK_LIB=1
-
-CXXFLAGS="${CXXFLAGS:-}"
-
-unameOut="$(uname -s)"
-if [[ "$unameOut" == "CYGWIN"* ]] || [[ "$unameOut" == "MINGW"* ]] || [[ "$unameOut" == "MSYS_NT"* ]]; then
-  CXXFLAGS="${CXXFLAGS} -EHsc -std:c++17"
-else
-  CXXFLAGS="${CXXFLAGS} -fPIC -std=c++17"
-fi
-
-set -x
-mkn clean build -dtSOg 0 -a "${CXXFLAGS}"
+mkn clean build -dtSOg 0 -a "${CXXFLAGS}" ${MKN_P}
