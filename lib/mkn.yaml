@@ -36,7 +36,7 @@ profile:
       bsd_lib: ${bsd_largs}
       win: -LTCG
     mod: |
-      lang.python3{compile{with: numpy}, link{delete: CoreFoundation }}
+      lang.python3{compile:{with: numpy}, link:{delete: CoreFoundation -framework }}
 
   - name: tick.py
     parent: arg

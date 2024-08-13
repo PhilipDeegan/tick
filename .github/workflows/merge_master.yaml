@@ -20,8 +20,8 @@ env:
 jobs:
 
   build_linux:
-    runs-on: ubuntu-latest
-    container: quay.io/pypa/manylinux2014_x86_64
+    runs-on: ubuntu-20.04
+    container: quay.io/pypa/manylinux_2_28_x86_64:latest
 
     strategy:
       fail-fast: false
@@ -65,7 +65,7 @@ jobs:
       max-parallel: 4
       matrix:
         os: [windows-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12']
 
     runs-on: ${{ matrix.os }}
 
@@ -86,7 +86,7 @@ jobs:
           git config --global --add safe.directory '*'
           python3 -V
           python3 -m pip install -U pip
-          python3 -m pip install -U build twine wheel
+          python3 -m pip install -U build twine wheel setuptools
           python3 -m pip install -U -r requirements.txt
 
       - name: build windows
@@ -119,7 +119,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
       - uses: actions/setup-python@v4
@@ -134,12 +134,13 @@ jobs:
           python3 -m pip install -U pip
           python3 -m pip install -U build twine wheel
           python3 -m pip install -U -r requirements.txt
+          swig -version || ( brew update && brew install swig && swig -version )
 
       - name: build macos
         env:
           MKN_PYTHON_LIB_EMBED: 1
         run: |
-          curl -Lo mkn https://github.com/mkn/mkn/releases/download/latest/mkn_osx
+          curl -Lo mkn https://github.com/mkn/mkn/releases/download/latest/mkn_arm_osx
           chmod +x mkn
           PATH=$PWD:$PATH mkn -C lib build -g 0 -dtO 2 -a "-fPIC -std=c++17"
 
@@ -188,7 +189,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12']
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Python
