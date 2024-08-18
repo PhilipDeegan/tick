@@ -13,8 +13,6 @@ on:
 
 env:
   MKN_COMPILE_THREADS: 2
-  MKN_LIB_LINK_LIB: 1
-  MKN_PYTHON_LIB_EMBED: 1
   KLOG: 3
 
 jobs:

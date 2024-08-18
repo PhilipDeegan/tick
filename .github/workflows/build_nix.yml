@@ -14,8 +14,6 @@ on:
 env:
   MKN_COMPILE_THREADS: 2
   MKN_GCC_PREFERRED: 1
-  MKN_PYTHON_LIB_EMBED: 1
-  MKN_LIB_LINK_LIB: 1
   KLOG: 3
 
 jobs:
@@ -47,8 +45,10 @@ jobs:
 
     - name: pip # tensorflow not released for 3.12 as of 26-OCT-2023
       run: |
-        python3 -m pip install wheel pip --upgrade
-        python3 -m pip install -r requirements.txt
+        python3 -V
+        python3 -m pip install -U pip
+        python3 -m pip install -U build twine wheel setuptools
+        python3 -m pip install -U -r requirements.txt
         [ "${{ matrix.python-version }}" != "3.12" ] && python3 -m pip install tensorflow-cpu
 
     - name: build
