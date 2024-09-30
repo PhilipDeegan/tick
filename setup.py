@@ -8,7 +8,7 @@ class BinaryDistribution(setuptools.dist.Distribution):
 
 setuptools.setup(
     name="tick",
-    version='0.7.0.2',
+    version='0.8.0.1',
     author="Emmanuel Bacry, "
            "Stephane Gaiffas, "
            "Martin Bompaire, "
