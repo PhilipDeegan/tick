@@ -1,7 +1,6 @@
 #! clean build -dtS
 
 name: tick
-
 self: tick.py
 
 property:
@@ -19,7 +18,6 @@ property:
                -Wl,-O1 -Wl,-Bsymbolic-functions
                -Wl,-z,relro -Wl,-z,relro
     bsd_largs: ${nixish_largs}
-
 
 profile:
 - name: arg
@@ -59,10 +57,16 @@ profile:
   parent: arg
   arg: -DBUILDING_DLL
   src: cpp
+  env: |
+    MKN_LIB_LINK_LIB=1
+    MKN_PYTHON_LIB_EMBED=1
 
 - name: gtest
   parent: arg
   self: gtest_lib
   dep: google.test
   arg: -DGTEST_LINKED_AS_SHARED_LIBRARY -DADD_MAIN
+  env: |
+    MKN_LIB_LINK_LIB=1
+    MKN_PYTHON_LIB_EMBED=1
   # run: find lib/cpp-test -name "*gtest.cpp"
