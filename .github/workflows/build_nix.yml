@@ -13,16 +13,15 @@ env:
 
 jobs:
   build:
-    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
     timeout-minutes: 90
 
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
-        python-version: ['3.12']
-        os: ['ubuntu-24.04']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
 
     steps:
     - uses: actions/checkout@v6
@@ -43,17 +42,13 @@ jobs:
         python3 -m pip install --upgrade pip
         python3 -m pip install .[dev]
         python3 -m pip install pytest-timeout
-        python3 -m pip list
-        g++ --version
 
     - name: build
       run: |
-        python3 -m build --wheel 2>&1 | grep -iE 'pybind11|numpy|Successfully|error' || true
+        python3 -m build --wheel
 
     - name: pytest
       env:
         PYTHONFAULTHANDLER: 1
       run: |
-        python3 -m pytest -v --tb=long --timeout=120 tick/linear_model/tests/model_linreg_test.py tick/hawkes/simulation/tests/simu_point_process_test.py || true
-        python3 -m pytest -q -rfE --tb=line --timeout=120 --ignore=tick/plot || true
-        python3 -m pytest -v --tb=long --timeout=120 tick/plot/tests/plot_hawkes_test.py || true
+        python3 -m pytest -q --durations=50 --timeout=600
